@@ -465,9 +465,9 @@
                     scale: 2,       // Resolusi tinggi
                     useCORS: true,  
                     scrollY: 0,
-                    // windowWidth: 1200 memaksa CSS desktop dipakai
-                    // width: 794 memaksa ukuran kanvas output menjadi pas A4
-                    windowWidth: 1200, 
+                    // PENTING: Samakan windowWidth dengan lebar konten (794px)
+                    // Jangan gunakan 1200px karena akan menyebabkan konten rata tengah & terpotong saat dicrop ke 794px
+                    windowWidth: 794, 
                     width: 794,
                     x: 0,
                     y: 0
