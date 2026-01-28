@@ -427,8 +427,9 @@
             container.style.left = '0';
             container.style.zIndex = '-1';
             
-            // PENTING: Gunakan lebar window DESKTOP (bukan A4 pixel) agar layout tidak pecah/stacked
-            container.style.width = '1200px'; 
+            // PENTING: Gunakan lebar A4 exact (794px) agar canvas sesuai kertas
+            // Ini akan memastikan html2canvas menangkap area yang pas, bukan area desktop yang lebar
+            container.style.width = '794px'; 
             container.style.height = 'auto'; 
             
             // 3. Atur style pada elemen kloningan
@@ -436,21 +437,19 @@
             clonedElement.style.margin = '0';
             clonedElement.style.boxShadow = 'none';
             clonedElement.style.background = 'white';
-            clonedElement.style.boxSizing = 'border-box'; // Pastikan padding tidak menambah lebar total
+            clonedElement.style.boxSizing = 'border-box'; 
             
-            // Paksa ukuran kertas A4 (210mm x 297mm)
-            clonedElement.style.width = '210mm'; 
-            clonedElement.style.maxWidth = '210mm';
-            clonedElement.style.minHeight = '296mm'; // Sedikit kurang dari 297mm
-            clonedElement.style.maxHeight = '296mm';
+            // Paksa ukuran kertas A4 (794px x 1123px) dalam pixel
+            clonedElement.style.width = '794px'; 
+            clonedElement.style.maxWidth = '794px';
+            clonedElement.style.minHeight = '1123px'; 
+            clonedElement.style.maxHeight = '1123px';
             
-            // PENTING: Gunakan padding kecil agar konten punya ruang maksimal (Safe Zone)
-            // Mengurangi padding dari default 10mm/15mm menjadi 5mm
-            clonedElement.style.padding = '10mm'; 
+            // Padding aman untuk cetak
+            clonedElement.style.padding = '10mm 15mm'; 
             
-            // PENTING: Zoom out sedikit (98%) agar margin aman dan tidak ada yang terpotong di tepi
-            clonedElement.style.transform = 'scale(0.98)';
-            clonedElement.style.transformOrigin = 'top center';
+            // Hapus transform scale yang bisa menyebabkan pergeseran layout
+            clonedElement.style.transform = 'none';
             clonedElement.style.overflow = 'hidden'; 
             
             // Masukkan kloningan ke container
@@ -459,14 +458,19 @@
 
             // 4. Konfigurasi html2pdf
             const opt = {
-                margin:       0, // Margin dihandle oleh padding CSS di atas
+                margin:       0,
                 filename:     'surat_jalan.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2,       // Resolusi tinggi
                     useCORS: true,  
                     scrollY: 0,
-                    windowWidth: 1200 // Simulasi browser desktop lebar 1200px
+                    // windowWidth: 1200 memaksa CSS desktop dipakai
+                    // width: 794 memaksa ukuran kanvas output menjadi pas A4
+                    windowWidth: 1200, 
+                    width: 794,
+                    x: 0,
+                    y: 0
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
