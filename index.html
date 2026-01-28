@@ -414,20 +414,39 @@
 
         function downloadPDF() {
             const element = document.querySelector('.page');
+            
+            // Simpan style asli
+            const originalShadow = element.style.boxShadow;
+            const originalHeight = element.style.height;
+            const originalMinHeight = element.style.minHeight;
+            const originalOverflow = element.style.overflow;
+            const originalWidth = element.style.width;
+
+            // Paksa ukuran pas A4 (kurangi sedikit untuk safety margin)
+            // A4 tinggi 297mm, kita set max 296mm agar tidak loncat halaman
+            element.style.boxShadow = 'none';
+            element.style.height = '296mm';
+            element.style.minHeight = '296mm';
+            element.style.maxHeight = '296mm';
+            element.style.width = '210mm'; // Pastikan lebar tetap
+            element.style.overflow = 'hidden'; // Potong jika ada konten berlebih
+
             const opt = {
                 margin:       0,
                 filename:     'surat_jalan.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            // Temporarily remove shadow for clean PDF
-            const originalShadow = element.style.boxShadow;
-            element.style.boxShadow = 'none';
-
             html2pdf().set(opt).from(element).save().then(() => {
+                // Kembalikan style asli
                 element.style.boxShadow = originalShadow;
+                element.style.height = originalHeight;
+                element.style.minHeight = originalMinHeight;
+                element.style.overflow = originalOverflow;
+                element.style.width = originalWidth;
+                element.style.maxHeight = '';
             });
         }
 
