@@ -413,40 +413,56 @@
         window.onload = init;
 
         function downloadPDF() {
+            // Elemen asli yang ingin dicetak
             const element = document.querySelector('.page');
             
-            // Simpan style asli
-            const originalShadow = element.style.boxShadow;
-            const originalHeight = element.style.height;
-            const originalMinHeight = element.style.minHeight;
-            const originalOverflow = element.style.overflow;
-            const originalWidth = element.style.width;
+            // 1. Kloning elemen agar tidak mengganggu tampilan asli
+            // Kloning juga memungkinkan kita memanipulasi ukuran untuk cetak tanpa merusak responsivitas mobile
+            const clonedElement = element.cloneNode(true);
+            
+            // 2. Buat container sementara yang tidak terlihat
+            // Container ini memaksa ukuran desktop/A4 meskipun dibuka di HP
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.top = '-9999px'; // Sembunyikan di luar layar
+            container.style.left = '0';
+            container.style.zIndex = '-1';
+            container.style.width = '210mm'; // Lebar A4
+            container.style.height = 'auto'; // Biarkan tinggi menyesuaikan konten dulu
+            
+            // 3. Atur style pada elemen kloningan
+            // Reset margin dan shadow
+            clonedElement.style.margin = '0';
+            clonedElement.style.boxShadow = 'none';
+            
+            // Paksa ukuran pas 1 halaman A4
+            clonedElement.style.width = '210mm';
+            clonedElement.style.height = '296mm'; // Sedikit kurang dari 297mm (A4) untuk aman
+            clonedElement.style.maxHeight = '296mm';
+            clonedElement.style.overflow = 'hidden'; // Potong konten yang berlebih
+            
+            // Masukkan kloningan ke container, lalu container ke body
+            container.appendChild(clonedElement);
+            document.body.appendChild(container);
 
-            // Paksa ukuran pas A4 (kurangi sedikit untuk safety margin)
-            // A4 tinggi 297mm, kita set max 296mm agar tidak loncat halaman
-            element.style.boxShadow = 'none';
-            element.style.height = '296mm';
-            element.style.minHeight = '296mm';
-            element.style.maxHeight = '296mm';
-            element.style.width = '210mm'; // Pastikan lebar tetap
-            element.style.overflow = 'hidden'; // Potong jika ada konten berlebih
-
+            // 4. Konfigurasi html2pdf
             const opt = {
                 margin:       0,
                 filename:     'surat_jalan.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                html2canvas:  { 
+                    scale: 2,       // Resolusi tinggi
+                    useCORS: true,  // Izin akses gambar
+                    scrollY: 0,
+                    windowWidth: 1200 // PENTING: Simulasi lebar layar desktop agar tidak terpotong di HP
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Kembalikan style asli
-                element.style.boxShadow = originalShadow;
-                element.style.height = originalHeight;
-                element.style.minHeight = originalMinHeight;
-                element.style.overflow = originalOverflow;
-                element.style.width = originalWidth;
-                element.style.maxHeight = '';
+            // 5. Generate PDF dari elemen kloningan
+            html2pdf().set(opt).from(clonedElement).save().then(() => {
+                // Bersihkan container sementara setelah selesai
+                document.body.removeChild(container);
             });
         }
 
