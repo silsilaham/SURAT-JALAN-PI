@@ -421,42 +421,53 @@
             const clonedElement = element.cloneNode(true);
             
             // 2. Buat container sementara yang tidak terlihat
-            // Container ini memaksa ukuran desktop/A4 meskipun dibuka di HP
             const container = document.createElement('div');
             container.style.position = 'fixed';
-            container.style.top = '-9999px'; // Sembunyikan di luar layar
+            container.style.top = '-9999px';
             container.style.left = '0';
             container.style.zIndex = '-1';
-            container.style.width = '210mm'; // Lebar A4
-            container.style.height = 'auto'; // Biarkan tinggi menyesuaikan konten dulu
+            
+            // PENTING: Gunakan lebar window DESKTOP (bukan A4 pixel) agar layout tidak pecah/stacked
+            container.style.width = '1200px'; 
+            container.style.height = 'auto'; 
             
             // 3. Atur style pada elemen kloningan
-            // Reset margin dan shadow
+            // Reset style dasar
             clonedElement.style.margin = '0';
             clonedElement.style.boxShadow = 'none';
+            clonedElement.style.background = 'white';
+            clonedElement.style.boxSizing = 'border-box'; // Pastikan padding tidak menambah lebar total
             
-            // Paksa ukuran pas 1 halaman A4
-            clonedElement.style.width = '210mm';
-            clonedElement.style.height = '296mm'; // Sedikit kurang dari 297mm (A4) untuk aman
+            // Paksa ukuran kertas A4 (210mm x 297mm)
+            clonedElement.style.width = '210mm'; 
+            clonedElement.style.maxWidth = '210mm';
+            clonedElement.style.minHeight = '296mm'; // Sedikit kurang dari 297mm
             clonedElement.style.maxHeight = '296mm';
-            clonedElement.style.overflow = 'hidden'; // Potong konten yang berlebih
             
-            // Masukkan kloningan ke container, lalu container ke body
+            // PENTING: Gunakan padding kecil agar konten punya ruang maksimal (Safe Zone)
+            // Mengurangi padding dari default 10mm/15mm menjadi 5mm
+            clonedElement.style.padding = '10mm'; 
+            
+            // PENTING: Zoom out sedikit (98%) agar margin aman dan tidak ada yang terpotong di tepi
+            clonedElement.style.transform = 'scale(0.98)';
+            clonedElement.style.transformOrigin = 'top center';
+            clonedElement.style.overflow = 'hidden'; 
+            
+            // Masukkan kloningan ke container
             container.appendChild(clonedElement);
             document.body.appendChild(container);
 
             // 4. Konfigurasi html2pdf
             const opt = {
-                margin:       0,
+                margin:       0, // Margin dihandle oleh padding CSS di atas
                 filename:     'surat_jalan.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2,       // Resolusi tinggi
-                    useCORS: true,  // Izin akses gambar
+                    useCORS: true,  
                     scrollY: 0,
-                    windowWidth: 1200 // PENTING: Simulasi lebar layar desktop agar tidak terpotong di HP
+                    windowWidth: 1200 // Simulasi browser desktop lebar 1200px
                 },
-                // Pastikan orientation 'portrait' sesuai permintaan
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
